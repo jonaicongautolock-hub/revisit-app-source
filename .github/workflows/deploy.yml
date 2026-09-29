@@ -1,0 +1,67 @@
+# どの AI・どの端末から直しても、ここが最後の関門になる。
+#  - プルリクエスト: 点検と試験だけ（公開しない）。緑になってからマージする
+#  - main への push: 点検と試験 → 合格したときだけ GitHub Pages に公開（不合格なら iPhone には前の版が残る）
+# 結果と画面写真（test-output）は Actions の画面で見られる。
+# リポジトリの Settings → Pages → Source は「GitHub Actions」にしておく。
+name: 試験して公開
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: 点検（版の番号・オフライン用の控え）
+        run: node tools/check-version.js "${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}"
+      - name: 動作試験（iPhone の画面サイズ）
+        run: npm test
+      - name: 画面写真を残す
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output
+          path: test-output/
+          retention-days: 14
+
+  deploy:
+    needs: test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: 公開するファイルだけを集める（道具や説明書は出さない）
+        run: |
+          mkdir _site
+          git ls-files | grep -vE '^(tools/|\.github/|package(-lock)?\.json$|[A-Z]+\.md$|\.git(ignore|attributes)$)' \
+            | xargs -I{} cp --parents {} _site/
+          find _site -type f | sort
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

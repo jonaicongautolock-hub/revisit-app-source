@@ -1,0 +1,16 @@
+{
+  "name": "revisit-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "個人の再訪問を iPhone の中だけで管理する Web アプリ（PWA）",
+  "scripts": {
+    "serve": "node tools/serve.js",
+    "test": "node tools/dev-harness.js",
+    "icons": "node tools/make-icons.js",
+    "check": "node tools/check-version.js"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.5",
+    "ws": "^8.18.0"
+  }
+}

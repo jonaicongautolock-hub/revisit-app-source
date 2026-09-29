@@ -1,0 +1,3 @@
+# Windows と Mac の両方で触るので、改行は LF にそろえる
+* text=auto eol=lf
+*.png binary

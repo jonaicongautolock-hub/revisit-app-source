@@ -1,0 +1,7 @@
+node_modules/
+test-output/
+.DS_Store
+# バックアップのファイル（相手の名前や記録が入る）はリポジトリに入れない
+再訪問ノート_*.json
+*.backup.json
+backups/

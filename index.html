@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f5f8b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="再訪問">
+<meta name="format-detection" content="telephone=no">
+<title>再訪問ノート</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div id="update-bar" hidden>新しい版があります <button>更新する</button></div>
+
+<div id="views">
+  <section class="view" id="view-list"></section>
+  <section class="view map-view" id="view-map"></section>
+  <section class="view" id="view-person"></section>
+  <section class="view" id="view-settings"></section>
+</div>
+
+<nav id="tabs">
+  <button data-tab="list"><span class="ic">📋</span>一覧</button>
+  <button data-tab="map"><span class="ic">🗺</span>地図</button>
+  <button data-tab="add" class="add" aria-label="新しい相手"><span class="plus">＋</span></button>
+  <button data-tab="settings"><span class="ic">⚙</span>設定</button>
+</nav>
+
+<div id="gate" hidden>
+  <img src="icons/icon-192.png" alt="" width="84" height="84">
+  <h1>再訪問ノート</h1>
+  <p class="lead">ホーム画面に追加してから使います</p>
+  <ol>
+    <li>Safari の <b>共有ボタン</b>（四角から矢印が出ているマーク）を押します。<br><span>見当たらないときは「…」の中にあります</span></li>
+    <li><b>「ホーム画面に追加」</b>を選び、右上の「追加」を押します。</li>
+    <li>ホーム画面にできた <b>「再訪問」</b> のアイコンから開きます。</li>
+  </ol>
+  <p class="why">Safari で開いたままだと記録を保存しません。Safari とホーム画面のアプリでは保存場所が別で、Safari はしばらく開かないサイトの記録を消すことがあるためです。</p>
+</div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="store.js"></script>
+<script src="backup.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
