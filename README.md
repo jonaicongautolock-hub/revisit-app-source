@@ -42,6 +42,8 @@
 | `.claude/settings.json` | Claude が聞かずに動かしてよいコマンド（試験・commit など）と、必ず聞くコマンド（push＝公開） |
 | `tools/dev-harness.js` | 動作試験（`npm test`。ヘッドレス Chrome を iPhone の画面サイズにして一通り操作し、合否と画面写真を出す） |
 | `tools/check-version.js` | 公開前の点検（`npm run check`。版の番号・オフライン用の控えの漏れ） |
+| `tools/check-private.js` | 個人の情報の点検。commit のたびに、入れようとした中身とメッセージを見て止める |
+| `tools/git-hooks/` | 上を commit のときに走らせる仕掛け。`npm ci`／`npm install` のときに自動で有効になる |
 | `.github/workflows/deploy.yml` | main に push すると点検・試験し、合格したときだけ GitHub Pages に公開する |
 | `AGENTS.md` | AI に守らせる決まりごとの原本（Codex などが読む） |
 | `CLAUDE.md` / `GEMINI.md` | `AGENTS.md` を読み込むだけ（Claude・Gemini はこちらを読むため） |
@@ -94,6 +96,32 @@ main に push すると GitHub Actions が点検と試験をし、合格した�
 `sw.js` の `VERSION` と `app.js` の `APP_VERSION` を両方上げる。
 `sw.js` の中身が変わらないと、iPhone は古い版を使い続ける。
 新しい版が届くと画面の上に「新しい版があります［更新する］」が出る（押すまで切り替えない）。
+
+## 個人の情報を入れない仕掛け
+
+このリポジトリは公開されている。訪問先の方の名前・住所・事情は、記録される側が同意したものではないので、
+**git には一切入れない。** 一度 push すると履歴から消せない（fork や各種の控えにも残る）。
+
+アプリの作りの上では、記録は iPhone の IndexedDB の中だけにあり、git に入る理由がない。
+そのうえで、うっかり入れてしまう事故を機械的に止めてある。
+
+| 止める場所 | 何を止めるか |
+|---|---|
+| `.gitignore` | 書き出したバックアップ、`test-output/` の画面写真、一番上の階層の見慣れない JSON |
+| `pre-commit` | これから commit する中身。バックアップは**名前を変えて置かれても中身で**見分ける。電話番号・番地まで入った住所・メールアドレスも止める |
+| `commit-msg` | commit のメッセージに入った実在の人の名前（「◯◯さんの…」）・電話・住所 |
+| `npm run check` | いま git に入っているファイル全部。GitHub の点検でも走るので、クラウドの AI が直したときも通る |
+| `.claude/settings.json` | AI が点検を避ける操作（`git add -f`・`git commit --no-verify`・`core.hooksPath` の変更）を禁じる |
+
+`pre-commit` と `commit-msg` は `npm ci`／`npm install` のときに自動で有効になる（`tools/install-hooks.js`）。
+自分で入れ直すときは `git config core.hooksPath tools/git-hooks`。
+
+止まったときは、入れてしまったファイルを `git restore --staged <ファイル>` で外す。
+町名まで（例: 小倉北区城内）は公の地名なので止めない。番地や部屋番号まで書かれていると止まる。
+**人が自分の判断で通すときだけ** `git commit --no-verify`（AI は使えない設定にしてある）。
+
+運用で気をつけることが一つだけある。**AI に相談するときも実在の名前を打ち込まない。**
+「◯◯さんの記録が消えた」ではなく「記録が消えた」と書けばよい。名前は直すのに要らない。
 
 ## 注意
 

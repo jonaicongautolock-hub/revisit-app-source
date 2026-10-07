@@ -7,4 +7,10 @@ test-output/
 # バックアップのファイル（相手の名前や記録が入る）はリポジトリに入れない
 再訪問ノート_*.json
 *.backup.json
+*バックアップ*.json
 backups/
+# 名前を変えて置かれても取りこぼさないよう、一番上の階層の JSON は決まったものだけ入れる
+/*.json
+!/package.json
+!/package-lock.json
+!/muni.json

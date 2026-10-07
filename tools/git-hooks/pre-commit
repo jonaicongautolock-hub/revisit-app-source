@@ -1,0 +1,5 @@
+#!/bin/sh
+# これから commit する中身に個人の情報が入っていないか見る（中身は tools/check-private.js）。
+# .git/hooks は git で配れないので、このフォルダを使うよう tools/install-hooks.js が向け先を変える。
+# .gitignore を飛ばす `git add -f` でも、ここは index を直接見るので止まる。
+exec node tools/check-private.js --staged

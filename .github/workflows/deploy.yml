@@ -25,8 +25,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: 点検（版の番号・オフライン用の控え）
-        run: node tools/check-version.js "${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}"
+      - name: 点検（個人の情報・版の番号・オフライン用の控え）
+        run: npm run check -- "${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}"
       - name: 動作試験（iPhone の画面サイズ）
         run: npm test
       - name: 画面写真を残す
