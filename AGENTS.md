@@ -38,7 +38,12 @@
 - **クラウドで動く AI**（Claude Code on the web・Codex のクラウドなど）: Chrome が無いなどで `npm test` が動かないことがある。
   その場合も `npm run check` は動かす。**main には push せず、ブランチに push してプルリクエストを作る。**
   プルリクエストの説明に「何を・なぜ変えたか」と「手元で試験できたか」を書く。GitHub の試験が緑になったのを見て、利用者がマージする
-- どちらの場合も、依存を入れるのは `npm ci`（なければ `npm install`）。Node.js は 22 以上
+- **PC の上でも、今いるブランチが main でないとき**（Claude デスクトップで worktree を選んだときなど。`git branch --show-current` で分かる）は、
+  クラウドの AI と同じく、そのブランチを push してプルリクエストにする。main へ勝手にマージしない
+- どちらの場合も、依存を入れるのは `npm ci`（なければ `npm install`）。Node.js は 22 以上。
+  worktree では `node_modules` が無いので、最初に `npm ci` を動かす
+- `git push` は公開そのもの。push の前に「何を変えたか・試験が合格したか」を利用者に一言で伝え、許しを得てから動かす
+  （`.claude/settings.json` で push は必ず聞く設定。強制 push と `git reset --hard` は使わない）
 
 ## 変更の手順
 
@@ -51,6 +56,12 @@
    数分後に iPhone でアプリを開き直すと「更新する」が出る
 
 手元で触って見るときは `npm run serve` → PC の Chrome で http://localhost:5181/ （PC では「ホーム画面に追加」の案内は出ない）。
+Claude デスクトップでは `.claude/launch.json` がこれを右側の Browser に出す。
+
+- `tools/serve.js` は本物の `sw.js` の代わりに「控えを使わない sw.js」を渡すので、直したファイルはすぐ画面に出る。
+  手元の画面が古いままでも、版の番号を上げて直そうとしないこと（番号は守ること 5 のとおり、アプリを変えたら上げる）
+- 本物の控え（オフライン）の動きを手元で試すときだけ `node tools/serve.js --sw`
+- 手元の画面の記録は PC のブラウザの中だけにある。iPhone の記録とは別もの。試すときは架空の名前で
 
 ## 画面づくりの決まり
 

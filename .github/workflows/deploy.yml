@@ -56,7 +56,7 @@ jobs:
       - name: 公開するファイルだけを集める（道具や説明書は出さない）
         run: |
           mkdir _site
-          git ls-files | grep -vE '^(tools/|\.github/|package(-lock)?\.json$|[A-Z]+\.md$|\.git(ignore|attributes)$)' \
+          git ls-files | grep -vE '^(tools/|\.github/|\.claude/|package(-lock)?\.json$|[A-Z]+\.md$|\.git(ignore|attributes)$)' \
             | xargs -I{} cp --parents {} _site/
           find _site -type f | sort
       - uses: actions/configure-pages@v5

@@ -1,0 +1,12 @@
+{
+  // Claude デスクトップの Code タブで、右側の Browser にアプリを出すための設定。
+  // tools/serve.js は控え（オフライン用のキャッシュ）を使わないので、直したらすぐ画面に出る。
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "再訪問ノート",
+      "program": "tools/serve.js",
+      "port": 5181
+    }
+  ]
+}

@@ -37,7 +37,9 @@
 | `muni.json` | 市区町村コード→名前（地理院の muni.js から作った表） |
 | `vendor/leaflet/` | Leaflet 1.9.4（オフラインでも動くよう同梱） |
 | `icons/` | アイコン。作り直しは `npm run icons` |
-| `tools/serve.js` | 手元で開く静的サーバー（`npm run serve` → http://localhost:5181/） |
+| `tools/serve.js` | 手元で開く静的サーバー（`npm run serve` → http://localhost:5181/）。控え（キャッシュ）を使わないので、直したらすぐ画面に出る |
+| `.claude/launch.json` | Claude デスクトップの右側の画面（Browser）に、`tools/serve.js` でアプリを出す設定 |
+| `.claude/settings.json` | Claude が聞かずに動かしてよいコマンド（試験・commit など）と、必ず聞くコマンド（push＝公開） |
 | `tools/dev-harness.js` | 動作試験（`npm test`。ヘッドレス Chrome を iPhone の画面サイズにして一通り操作し、合否と画面写真を出す） |
 | `tools/check-version.js` | 公開前の点検（`npm run check`。版の番号・オフライン用の控えの漏れ） |
 | `.github/workflows/deploy.yml` | main に push すると点検・試験し、合格したときだけ GitHub Pages に公開する |
@@ -72,6 +74,17 @@ main に push すると GitHub Actions が点検と試験をし、合格した�
 | Claude Code（ターミナル）・Claude デスクトップアプリの Code タブ | 自分の PC | 手元で `npm test` が合格 → main に push |
 | Codex CLI・Codex デスクトップアプリ | 自分の PC | 同上 |
 | Claude Code on the web（claude.ai/code）・Codex のクラウド | クラウド | ブランチ＋プルリクエスト → GitHub の試験が緑 → マージ |
+
+### Claude デスクトップアプリ（Code タブ）で直す
+
+1. Claude デスクトップアプリを開き、上の **Code** を選ぶ
+2. 入力欄の下で **Local**（この PC）と、このフォルダ（`revisit-app`）を選ぶ。**worktree** は選ばない（main のまま直す）
+3. モードは **Accept edits**（ファイルの書き換えは聞かずに進める）か **Auto**。慣れるまでは Accept edits
+4. 直したいことを日本語で書く。例:「人の詳細画面で、電話番号を押したら電話をかけられるようにしたい」
+5. Claude が直すと、右側の **Browser** にアプリが出て、Claude が自分で触って確かめる（PC の画面なので iPhone より横に広い）
+6. 試験が合格すると Claude が commit し、**push してよいか聞いてくる。これを許すと公開される**（数分後に iPhone に「更新する」が出る）
+
+試験・commit は聞かずに動いてよい設定、push（公開）は必ず聞く設定、強制 push と `git reset --hard` は動かせない設定にしてある（`.claude/settings.json`）。
 
 クラウドの AI にリポジトリを使わせるには、それぞれの画面で GitHub とつなぐ（初回だけ）。
 依存の準備は `npm ci`。クラウドでは Chrome が無く `npm test` が動かないことがあるが、GitHub の試験が代わりに通す。

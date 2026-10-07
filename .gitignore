@@ -1,6 +1,9 @@
 node_modules/
 test-output/
 .DS_Store
+# Claude デスクトップの作業用の写し（worktree）と、その PC だけの設定
+.claude/worktrees/
+.claude/settings.local.json
 # バックアップのファイル（相手の名前や記録が入る）はリポジトリに入れない
 再訪問ノート_*.json
 *.backup.json
