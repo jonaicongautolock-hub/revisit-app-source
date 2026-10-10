@@ -4,7 +4,7 @@
 # 結果と画面写真（test-output）は Actions の画面で見られる。
 # このリポジトリ（開発用）は Private。GitHub Pages で公開するのは、別にある公開用のリポジトリ。
 # 送り先と鍵は Settings → Secrets and variables → Actions に入れてある（README の「公開」）。
-#  - Variables の PUBLIC_REPO（例: ユーザー名/revisit-app）と Secrets の DEPLOY_KEY: 公開用へ完成品を送る
+#  - Variables の PUBLIC_REPO（例: ユーザー名/revisit-app）と Secrets の DEPLOY_KEY か DEPLOY_TOKEN: 公開用へ完成品を送る
 #  - Variables の DIST_REPO と Secrets の DIST_KEY: ほかの人に配るための写しを送る（配らないなら要らない）
 # どちらの Variables も無いリポジトリ（配布用の写しなど）では、点検と試験だけが動く。
 name: 試験して公開
@@ -55,6 +55,9 @@ jobs:
       PUBLIC_REPO: ${{ vars.PUBLIC_REPO }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # このリポジトリ用の認証を残すと、公開用へ送るときの鍵・トークンより先に使われてしまう
+          persist-credentials: false
       - name: 公開するファイルだけを集める（道具や説明書は出さない）
         run: |
           mkdir _site
@@ -64,18 +67,24 @@ jobs:
       - name: 公開用のリポジトリへ送る
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
         run: |
-          if [ -z "$DEPLOY_KEY" ]; then
-            echo "::error::DEPLOY_KEY がありません。Settings → Secrets and variables → Actions に入れてください（README の「公開」）"
+          # 送るための鍵は2通り。DEPLOY_KEY（SSH の deploy key）か、DEPLOY_TOKEN（GitHub の画面だけで作れるトークン）
+          if [ -n "$DEPLOY_KEY" ]; then
+            mkdir -p ~/.ssh
+            printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy_key
+            chmod 600 ~/.ssh/deploy_key
+            echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" >> ~/.ssh/known_hosts
+            export GIT_SSH_COMMAND="ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes"
+            url="git@github.com:${PUBLIC_REPO}.git"
+          elif [ -n "$DEPLOY_TOKEN" ]; then
+            url="https://x-access-token:${DEPLOY_TOKEN}@github.com/${PUBLIC_REPO}.git"
+          else
+            echo "::error::DEPLOY_KEY も DEPLOY_TOKEN もありません。Settings → Secrets and variables → Actions に入れてください（README の「公開」）"
             exit 1
           fi
-          mkdir -p ~/.ssh
-          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" >> ~/.ssh/known_hosts
-          export GIT_SSH_COMMAND="ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes"
 
-          git clone --depth 1 "git@github.com:${PUBLIC_REPO}.git" _public
+          git clone --depth 1 "$url" _public
           cd _public
           # 前の中身をいったん全部外し、今回の完成品と、公開用のリポジトリ自身の仕掛け（Pages に出す workflow・説明）だけを置く
           git rm -rq --ignore-unmatch .

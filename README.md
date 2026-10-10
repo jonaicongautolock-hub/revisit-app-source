@@ -94,6 +94,11 @@ ssh-keygen -t ed25519 -N "" -C "revisit-app deploy" -f deploy_key
 | 公開用の名前（`ユーザー名/リポジトリ名`） | 開発用の同じ画面の Variables。名前は `PUBLIC_REPO` |
 
 置いたら、手元の2つのファイルは消す。公開用の Settings → Pages → Source は「GitHub Actions」にしておく。
+
+パソコンが無く鍵を作れないときは、鍵の代わりにトークンでもよい（GitHub の画面だけで済む）。
+GitHub の Settings → Developer settings → Personal access tokens → Fine-grained tokens で、
+公開用のリポジトリ1つだけを選び、Contents と Workflows を Read and write にして作る。
+それを開発用の Secrets に `DEPLOY_TOKEN` という名前で置く。両方あるときは `DEPLOY_KEY` を使う。
 `PUBLIC_REPO` が無いあいだは、点検と試験だけが動き、公開はされない。
 
 ### ほかの人に配るとき（配る人だけ）
