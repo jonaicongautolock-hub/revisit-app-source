@@ -70,15 +70,16 @@ npm test         # 動作試験（test-output/ に画面写真）
 | リポジトリ | 見える範囲 | 中身 |
 |---|---|---|
 | 開発用（ここ） | Private（自分だけ） | ソース・道具・試験・履歴。直すのはここだけ |
-| 公開用 `jonaicongautolock-hub/revisitapp-test` | Public | アプリの完成品だけ。GitHub Pages が iPhone に配る |
+| 公開用 | Public | アプリの完成品だけ。GitHub Pages が iPhone に配る |
 
 開発用の main に push すると GitHub Actions が点検と試験をし、合格したときだけ完成品を公開用へ送る。
 公開用は受け取るたびに GitHub Pages に出す。公開用を直接直さない（次に送られたときに上書きされる）。
 
 無料プランの GitHub では Private のリポジトリから GitHub Pages を出せないので、この形にしてある。
-アプリのファイル（`app.js` など）は、ブラウザに配る以上どうしても誰でも読める。隠れるのは道具・試験・説明・履歴。
+アプリのファイル（`app.js` など）は、ブラウザに配る以上どうしても誰でも読める。隠れるのは道具・試験・説明と、
+プルリクエストや Issue でのやり取り。
 
-### 送るための鍵（最初に1回だけ）
+### 送り先と鍵（最初に1回だけ）
 
 開発用から公開用へ書き込むための鍵（deploy key）を1組作り、片方ずつ置く。鍵は公開用のリポジトリ1つにしか効かない。
 
@@ -89,9 +90,21 @@ ssh-keygen -t ed25519 -N "" -C "revisit-app deploy" -f deploy_key
 | 置くもの | 置く場所 |
 |---|---|
 | `deploy_key.pub`（公開鍵） | 公開用の Settings → Deploy keys → Add deploy key。**Allow write access に印を付ける** |
-| `deploy_key`（秘密鍵）の中身ぜんぶ | 開発用の Settings → Secrets and variables → Actions → New repository secret。名前は `DEPLOY_KEY` |
+| `deploy_key`（秘密鍵）の中身ぜんぶ | 開発用の Settings → Secrets and variables → Actions → Secrets。名前は `DEPLOY_KEY` |
+| 公開用の名前（`ユーザー名/リポジトリ名`） | 開発用の同じ画面の Variables。名前は `PUBLIC_REPO` |
 
-置いたら、手元の2つのファイルは消す。公開用の Settings → Pages → Source は「GitHub Actions」のままにしておく。
+置いたら、手元の2つのファイルは消す。公開用の Settings → Pages → Source は「GitHub Actions」にしておく。
+`PUBLIC_REPO` が無いあいだは、点検と試験だけが動き、公開はされない。
+
+### ほかの人に配るとき（配る人だけ）
+
+ソース一式の写しを置く **配布用**（Public）のリポジトリをもう1つ作ると、main が合格するたびに自動で写しが送られる。
+受け取る人はそこから clone して、自分の開発用・公開用を作る。配布用では点検と試験だけが動く。
+
+鍵をもう1組作り、公開鍵を配布用の Deploy keys（Allow write access）に、秘密鍵を開発用の Secrets に `DIST_KEY` で、
+配布用の名前を開発用の Variables に `DIST_REPO` で置く。
+
+配布用にはソースと commit のメッセージがそのまま出る。プルリクエストや Issue でのやり取りは出ない。
 
 ## AI で直す（どのアプリからでも）
 
