@@ -45,6 +45,7 @@ function findPhone(text) {
 const MAIL_OK = [
   /@users\.noreply\.github\.com$/,
   /^noreply@anthropic\.com$/,
+  /^git@github\.com$/, // 人のアドレスではなく、GitHub へ SSH でつなぐときの決まった宛先（公開用へ送るのに使う）
   /@example\.(com|org|net|jp)$/,
   /@test\.(local|invalid)$/,
 ];
@@ -173,7 +174,7 @@ else {
 for (const w of warnings) console.log('  ! 注意 —', w);
 
 if (problems.length) {
-  console.log('✗ 個人の情報が入りそうなので止めました（公開リポジトリです）');
+  console.log('✗ 個人の情報が入りそうなので止めました（アプリのファイルは公開されます）');
   for (const p of problems) console.log('  -', p);
   console.log('');
   console.log('  記録は iPhone の中だけに置くものです。git に入れると履歴から消せません。');

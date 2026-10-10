@@ -1,0 +1,34 @@
+# 公開用のリポジトリ（revisitapp-test）に置かれる workflow。原本は開発用のリポジトリの tools/public-repo/pages.yml。
+# 開発用のリポジトリが完成品を送ってくる（main に push する）たびに、中身をそのまま GitHub Pages に出す。
+# 点検と試験は、送る前に開発用のリポジトリの側で済んでいる。
+# このリポジトリの Settings → Pages → Source は「GitHub Actions」にしておく。
+name: 公開
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4

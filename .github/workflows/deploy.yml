@@ -1,8 +1,9 @@
 # どの AI・どの端末から直しても、ここが最後の関門になる。
 #  - プルリクエスト: 点検と試験だけ（公開しない）。緑になってからマージする
-#  - main への push: 点検と試験 → 合格したときだけ GitHub Pages に公開（不合格なら iPhone には前の版が残る）
+#  - main への push: 点検と試験 → 合格したときだけ、アプリの完成品を公開用のリポジトリへ送る（不合格なら iPhone には前の版が残る）
 # 結果と画面写真（test-output）は Actions の画面で見られる。
-# リポジトリの Settings → Pages → Source は「GitHub Actions」にしておく。
+# このリポジトリは Private。GitHub Pages で公開するのは、別にある公開用のリポジトリ（下の PUBLIC_REPO）。
+# 送るための鍵は Settings → Secrets and variables → Actions の DEPLOY_KEY に入れてある（README の「公開」）。
 name: 試験して公開
 
 on:
@@ -43,14 +44,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pages: write
-      id-token: write
     concurrency:
-      group: pages
+      group: deploy
       cancel-in-progress: false
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      # 公開用のリポジトリ。名前を変えると公開の URL が変わり、iPhone の記録が見えなくなる（AGENTS.md の守ること 2）
+      PUBLIC_REPO: jonaicongautolock-hub/revisitapp-test
     steps:
       - uses: actions/checkout@v4
       - name: 公開するファイルだけを集める（道具や説明書は出さない）
@@ -59,9 +58,34 @@ jobs:
           git ls-files | grep -vE '^(tools/|\.github/|\.claude/|package(-lock)?\.json$|[A-Z]+\.md$|\.git(ignore|attributes)$)' \
             | xargs -I{} cp --parents {} _site/
           find _site -type f | sort
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: 公開用のリポジトリへ送る
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        run: |
+          if [ -z "$DEPLOY_KEY" ]; then
+            echo "::error::DEPLOY_KEY がありません。Settings → Secrets and variables → Actions に入れてください（README の「公開」）"
+            exit 1
+          fi
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" >> ~/.ssh/known_hosts
+          export GIT_SSH_COMMAND="ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes"
+
+          git clone --depth 1 "git@github.com:${PUBLIC_REPO}.git" _public
+          cd _public
+          # 前の中身をいったん全部外し、今回の完成品と、公開用のリポジトリ自身の仕掛け（Pages に出す workflow・説明）だけを置く
+          git rm -rq --ignore-unmatch .
+          cp -a ../_site/. .
+          mkdir -p .github/workflows
+          cp ../tools/public-repo/pages.yml .github/workflows/pages.yml
+          cp ../tools/public-repo/README.md README.md
+          git add -A
+          if git diff --cached --quiet; then
+            echo "アプリのファイルは変わっていないので、送るものはありません"
+            exit 0
+          fi
+          version=$(sed -n "s/^const VERSION = '\([^']*\)'.*/\1/p" sw.js)
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "${version} を公開"
+          git push origin HEAD:main

@@ -44,7 +44,8 @@
 | `tools/check-version.js` | 公開前の点検（`npm run check`。版の番号・オフライン用の控えの漏れ） |
 | `tools/check-private.js` | 個人の情報の点検。commit のたびに、入れようとした中身とメッセージを見て止める |
 | `tools/git-hooks/` | 上を commit のときに走らせる仕掛け。`npm ci`／`npm install` のときに自動で有効になる |
-| `.github/workflows/deploy.yml` | main に push すると点検・試験し、合格したときだけ GitHub Pages に公開する |
+| `.github/workflows/deploy.yml` | main に push すると点検・試験し、合格したときだけ完成品を公開用のリポジトリへ送る |
+| `tools/public-repo/` | 公開用のリポジトリに置くもの（GitHub Pages に出す workflow と説明）。完成品と一緒に送られる |
 | `AGENTS.md` | AI に守らせる決まりごとの原本（Codex などが読む） |
 | `CLAUDE.md` / `GEMINI.md` | `AGENTS.md` を読み込むだけ（Claude・Gemini はこちらを読むため） |
 
@@ -64,8 +65,33 @@ npm test         # 動作試験（test-output/ に画面写真）
 
 ## 公開
 
-main に push すると GitHub Actions が点検と試験をし、合格したときだけ GitHub Pages に公開する。
-リポジトリの Settings → Pages → Source を「GitHub Actions」にしておく。
+リポジトリは2つに分けてある。
+
+| リポジトリ | 見える範囲 | 中身 |
+|---|---|---|
+| 開発用（ここ） | Private（自分だけ） | ソース・道具・試験・履歴。直すのはここだけ |
+| 公開用 `jonaicongautolock-hub/revisitapp-test` | Public | アプリの完成品だけ。GitHub Pages が iPhone に配る |
+
+開発用の main に push すると GitHub Actions が点検と試験をし、合格したときだけ完成品を公開用へ送る。
+公開用は受け取るたびに GitHub Pages に出す。公開用を直接直さない（次に送られたときに上書きされる）。
+
+無料プランの GitHub では Private のリポジトリから GitHub Pages を出せないので、この形にしてある。
+アプリのファイル（`app.js` など）は、ブラウザに配る以上どうしても誰でも読める。隠れるのは道具・試験・説明・履歴。
+
+### 送るための鍵（最初に1回だけ）
+
+開発用から公開用へ書き込むための鍵（deploy key）を1組作り、片方ずつ置く。鍵は公開用のリポジトリ1つにしか効かない。
+
+```
+ssh-keygen -t ed25519 -N "" -C "revisit-app deploy" -f deploy_key
+```
+
+| 置くもの | 置く場所 |
+|---|---|
+| `deploy_key.pub`（公開鍵） | 公開用の Settings → Deploy keys → Add deploy key。**Allow write access に印を付ける** |
+| `deploy_key`（秘密鍵）の中身ぜんぶ | 開発用の Settings → Secrets and variables → Actions → New repository secret。名前は `DEPLOY_KEY` |
+
+置いたら、手元の2つのファイルは消す。公開用の Settings → Pages → Source は「GitHub Actions」のままにしておく。
 
 ## AI で直す（どのアプリからでも）
 
@@ -99,7 +125,7 @@ main に push すると GitHub Actions が点検と試験をし、合格した�
 
 ## 個人の情報を入れない仕掛け
 
-このリポジトリは公開されている。訪問先の方の名前・住所・事情は、記録される側が同意したものではないので、
+開発用のリポジトリは Private だが、アプリのファイルはそのまま公開用へ送られ、直すときは AI にも渡る。訪問先の方の名前・住所・事情は、記録される側が同意したものではないので、
 **git には一切入れない。** 一度 push すると履歴から消せない（fork や各種の控えにも残る）。
 
 アプリの作りの上では、記録は iPhone の IndexedDB の中だけにあり、git に入る理由がない。
@@ -125,7 +151,7 @@ main に push すると GitHub Actions が点検と試験をし、合格した�
 
 ## 注意
 
-- **公開する URL を後から変えない。** 端末内の記録は URL（オリジン）ごとに分かれていて、変えると前の記録が見えなくなる。
+- **公開する URL を後から変えない。** 公開用のリポジトリの名前を変えない・Private にしない・消さない。端末内の記録は URL（オリジン）ごとに分かれていて、変えると前の記録が見えなくなる。
   変えるときは、古い URL でバックアップを書き出し、新しい URL で読み戻す
 - iPhone ではホーム画面のアイコンから開く。Safari とホーム画面のアプリでは保存場所が別
 - ホーム画面のアイコンを削除すると、記録も一緒に消える
