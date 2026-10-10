@@ -118,8 +118,7 @@ jobs:
             exit 1
           fi
           mkdir -p ~/.ssh
-          printf '%s
-' "$DIST_KEY" > ~/.ssh/dist_key
+          printf '%s\n' "$DIST_KEY" > ~/.ssh/dist_key
           chmod 600 ~/.ssh/dist_key
           echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" >> ~/.ssh/known_hosts
           export GIT_SSH_COMMAND="ssh -i ~/.ssh/dist_key -o IdentitiesOnly=yes"
